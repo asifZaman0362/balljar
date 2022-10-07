@@ -1,0 +1,75 @@
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+<script>
+
+  var images = [];
+  var patterns = [];
+  const canvas = document.createElement("canvas");
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  const socket = io();
+  var iter = 0;
+
+  function createPattern(count) {
+    console.log(count);
+    patterns[count] = ctx.createPattern(images[count], "repeat");
+  }
+  
+  function load_images() {
+    for (let i = 0; i < 30; i++) {
+      images[i] = new Image();
+      images[i].src = "" + i + ".png";
+      //images[i].onload = () => { createPattern(i) };
+    }
+  }
+
+  const drawWall = (body, ctx) => {
+    ctx.beginPath();
+    body.forEach(e => ctx.lineTo(e.x, e.y));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  const drawBall = (body, ctx) => {
+    iter += 1;
+    if (images[iter] == null) {
+      return;
+    }
+    //body.forEach(e => ctx.arc(e.x, e.y, 20, 0, 2 * Math.PI, false));
+    //ctx.fillStyle = 'green';
+    //ctx.fill();
+    //body.forEach(e => ctx.lineTo(e.x, e.y));
+    ctx.save();
+    //ctx.setTransform(1, 0, 0, 1, body.x, body.y);
+    //ctx.rotate(body.angle);
+    ctx.translate(body.x, body.y);
+    ctx.rotate(body.angle);
+    ctx.drawImage(images[iter], -15, -15, body.radius * 2, body.radius * 2);
+    ctx.restore();
+  };
+  
+  socket.once("connect", () => {
+    socket.emit("register", res => {
+      canvas.width = res.canvas.width;
+      canvas.height = res.canvas.height;
+      load_images();
+    });
+  });
+
+  socket.on("update state", ({balls, walls, score}) => {
+    iter = 0;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#111";
+    ctx.strokeStyle = "#111";
+    walls.forEach(wall => drawWall(wall, ctx));
+    ctx.fillStyle = "#aaa";
+    balls.forEach(ball => drawBall(ball, ctx));
+    ctx.fillStyle = '#000';
+    ctx.fillText("left: " + score.left, 100, 100);
+    ctx.fillText("right: " + score.right, 600, 100);
+  });
+  
+</script>
+</body>
+
