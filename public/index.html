@@ -148,13 +148,16 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
     ctx.fillText("Total Ball Count", 50, 400);
     ctx.fillText("Total Ball Count", canvas.width - 200, 400);
     ctx.font = "800 40px Robot Slab";
-    ctx.fillText('' + score.left, 150, 300);
-    ctx.fillText('' + score.right, canvas.width - 150, 300);
-    ctx.fillText('' + time, canvas.width - 150, 400);
+    ctx.fillText('' + score.left, 150, 350);
+    ctx.fillText('' + score.right, canvas.width - 150, 350);
+    ctx.fillStyle = '#666';
+    roundRect(ctx, canvas.width - 210, 175, 150, 100, 20, true, false)
+    ctx.fillStyle = '#fff';
+    ctx.fillText('' + time, canvas.width - 150, 250);
     var text = 'Jar filling';
-    if (!running) text = 'Resuming in';
+    if (!running) text = 'Restarting';
     ctx.font = "bold 20px Roboto Slab"
-    ctx.fillText(text, canvas.width - 200, 100);
+    ctx.fillText(text, canvas.width - 180, 200);
   });
   
 </script>
