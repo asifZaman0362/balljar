@@ -108,8 +108,34 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
   return this;
 }
 
+  const drawJarGlassEffect = (jar, ctx) => {
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(jar[0][1].x, jar[0][1].y + 60);
+    ctx.lineTo(jar[1][0].x, jar[1][0].y - 10);
+    ctx.quadraticCurveTo(jar[1][0].x + 10, jar[1][1].y - 5, jar[1][1].x, jar[1][1].y - 5);
+    ctx.lineTo(jar[3][0].x, jar[3][0].y - 5);
+    ctx.quadraticCurveTo(jar[3][1].x - 10, jar[3][0].y - 5, jar[3][1].x, jar[3][1].y - 5);
+    ctx.lineTo(jar[4][0].x, jar[4][0].y + 55);
+    ctx.bezierCurveTo(jar[4][0].x, jar[4][0].y + 35, jar[4][0].x - 30, jar[4][0].y + 50, jar[4][0].x - 30, jar[4][0].y + 25);
+    ctx.lineTo(jar[0][1].x + 30, jar[0][1].y + 20);
+    ctx.bezierCurveTo(jar[0][1].x + 30, jar[0][1].y + 55, jar[0][1].x, jar[0][1].y + 35, jar[0][1].x, jar[0][1].y + 55);
+    var gradient = ctx.createLinearGradient(jar[0][1].x, jar[0][1].y, jar[4][0].x, jar[4][0].y);
+    gradient.addColorStop(0, 'transparent');
+    gradient.addColorStop(0.04, 'transparent');
+    gradient.addColorStop(0.05, '#ffffffaa');
+    gradient.addColorStop(0.3, 'transparent');
+    gradient.addColorStop(0.7, 'transparent');
+    gradient.addColorStop(0.95, '#ffffffaa');
+    gradient.addColorStop(0.96, 'transparent');
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+
   const drawJarOutline = (jar, ctx) => {
     ctx.lineWidth = 5;
+    ctx.fillStyle = '#ffffff22';
     ctx.beginPath();
     ctx.moveTo(jar[0][1].x, jar[0][1].y + 50);
     ctx.lineTo(jar[1][0].x, jar[1][0].y);
@@ -147,9 +173,11 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
     balls.forEach(ball => drawBall(ball, ctx));
     ctx.strokeStyle = redjarColor;
     drawJarOutline(jars.red, ctx);
+    drawJarGlassEffect(jars.red, ctx);
     ctx.lineWidth = 5;
     ctx.strokeStyle = bluejarColor;
     drawJarOutline(jars.blue, ctx);
+    drawJarGlassEffect(jars.blue, ctx);
     ctx.fillStyle = '#fff';
     ctx.font = "bold 20px Inter";
     ctx.fillText("Total Ball Count", 70, 400);
