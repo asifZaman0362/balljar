@@ -1,4 +1,7 @@
 <body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;600;700;800&display=swap" rel="stylesheet"> 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
 <script>
 
@@ -28,26 +31,94 @@
     body.forEach(e => ctx.lineTo(e.x, e.y));
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
+  }
+
+  const drawEnvironment = (ctx) => {
+    ctx.beginPath();
+    let polygon = [ 100, 50, 700, 50, 700, 80, 430, 80, 430, 110, 550, 233, 250, 233, 370, 110, 370, 80, 100, 80, 100, 50 ]
+    for (item = 2; item < polygon.length - 1; item += 2) {
+      ctx.lineTo(polygon[item] + canvas.width / 10, polygon[item+1]);
+    }
+    ctx.closePath();
+    ctx.fill();
   }
 
   const drawBall = (body, ctx) => {
-    iter += 1;
+    if (iter > 29) iter = 0;
+    else iter += 1;
     if (images[iter] == null) {
       return;
     }
-    //body.forEach(e => ctx.arc(e.x, e.y, 20, 0, 2 * Math.PI, false));
-    //ctx.fillStyle = 'green';
-    //ctx.fill();
-    //body.forEach(e => ctx.lineTo(e.x, e.y));
     ctx.save();
-    //ctx.setTransform(1, 0, 0, 1, body.x, body.y);
-    //ctx.rotate(body.angle);
     ctx.translate(body.x, body.y);
     ctx.rotate(body.angle);
-    ctx.drawImage(images[iter], -15, -15, body.radius * 2, body.radius * 2);
+    ctx.drawImage(images[iter], -body.radius, -body.radius, body.radius * 2, body.radius * 2);
     ctx.restore();
   };
+
+  function roundRect(
+  ctx,
+  x,
+  y,
+  width,
+  height,
+  radius = 5,
+  fill = false,
+  stroke = true
+) {
+  if (typeof radius === 'number') {
+    radius = {tl: radius, tr: radius, br: radius, bl: radius};
+  } else {
+    radius = {...{tl: 0, tr: 0, br: 0, bl: 0}, ...radius};
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + radius.tl, y);
+  ctx.lineTo(x + width - radius.tr, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+  ctx.lineTo(x + width, y + height - radius.br);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+  ctx.lineTo(x + radius.bl, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+  ctx.lineTo(x, y + radius.tl);
+  ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+  ctx.closePath();
+  if (fill) {
+    ctx.fill();
+  }
+  if (stroke) {
+    ctx.stroke();
+  }
+}
+
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+  if (w < 2 * r) r = w / 2;
+  if (h < 2 * r) r = h / 2;
+  this.beginPath();
+  this.moveTo(x+r, y);
+  this.arcTo(x+w, y,   x+w, y+h, r);
+  this.arcTo(x+w, y+h, x,   y+h, r);
+  this.arcTo(x,   y+h, x,   y,   r);
+  this.arcTo(x,   y,   x+w, y,   r);
+  this.closePath();
+  return this;
+}
+
+  const drawJarOutline = (jar, ctx) => {
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(jar[0][1].x, jar[0][1].y + 50);
+    ctx.lineTo(jar[1][0].x, jar[1][0].y);
+    ctx.quadraticCurveTo(jar[1][0].x + 10, jar[1][1].y, jar[1][1].x, jar[1][1].y);
+    ctx.lineTo(jar[3][0].x, jar[3][0].y);
+    ctx.quadraticCurveTo(jar[3][1].x - 10, jar[3][0].y, jar[3][1].x, jar[3][1].y);
+    ctx.lineTo(jar[4][0].x, jar[4][0].y + 50);
+    ctx.bezierCurveTo(jar[4][0].x, jar[4][0].y + 30, jar[4][0].x - 30, jar[4][0].y + 50, jar[4][0].x - 30, jar[4][0].y + 20);
+    ctx.moveTo(jar[0][1].x + 30, jar[0][1].y + 20);
+    ctx.bezierCurveTo(jar[0][1].x + 30, jar[0][1].y + 50, jar[0][1].x, jar[0][1].y + 30, jar[0][1].x, jar[0][1].y + 50);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    roundRect(ctx, jar[0][1].x + 10, jar[0][1].y + 10, (jar[4][0].x - jar[0][0].x) - 70, 10);
+  }
   
   socket.once("connect", () => {
     socket.emit("register", res => {
@@ -57,17 +128,33 @@
     });
   });
 
-  socket.on("update state", ({balls, walls, score}) => {
+  socket.on("update state", ({balls, jars, walls, score, running, time}) => {
     iter = 0;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#111";
-    ctx.strokeStyle = "#111";
+    ctx.fillStyle = '#222328';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#bbb';
+    drawEnvironment(ctx);
+    ctx.fillStyle = "#222328";
+    ctx.strokeStyle = "#222328";
     walls.forEach(wall => drawWall(wall, ctx));
-    ctx.fillStyle = "#aaa";
+    ctx.strokeStyle = "#ff1030";
+    drawJarOutline(jars.red, ctx);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#0078bb";
+    drawJarOutline(jars.blue, ctx);
     balls.forEach(ball => drawBall(ball, ctx));
-    ctx.fillStyle = '#000';
-    ctx.fillText("left: " + score.left, 100, 100);
-    ctx.fillText("right: " + score.right, 600, 100);
+    ctx.fillStyle = '#fff';
+    ctx.font = "bold 20px Roboto Slab";
+    ctx.fillText("Total Ball Count", 50, 400);
+    ctx.fillText("Total Ball Count", canvas.width - 200, 400);
+    ctx.font = "800 40px Robot Slab";
+    ctx.fillText('' + score.left, 150, 300);
+    ctx.fillText('' + score.right, canvas.width - 150, 300);
+    ctx.fillText('' + time, canvas.width - 150, 400);
+    var text = 'Jar filling';
+    if (!running) text = 'Resuming in';
+    ctx.font = "bold 20px Roboto Slab"
+    ctx.fillText(text, canvas.width - 200, 100);
   });
   
 </script>
