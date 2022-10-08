@@ -1,10 +1,14 @@
 <body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;600;700;800&display=swap" rel="stylesheet"> 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet"> 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
 <script>
 
+  const bgColor = "#181c22";
+  const redjarColor = "#e75243";
+  const bluejarColor = "#3aa2d7";
+  const tubeColor = "#343840";
   var images = [];
   var patterns = [];
   const canvas = document.createElement("canvas");
@@ -12,6 +16,7 @@
   const ctx = canvas.getContext("2d");
   const socket = io();
   var iter = 0;
+  var offset_y = -50;
 
   function createPattern(count) {
     console.log(count);
@@ -129,35 +134,41 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
   });
 
   socket.on("update state", ({balls, jars, walls, score, running, time}) => {
+    ctx.save();
+    ctx.translate(0, offset_y);
     iter = 0;
-    ctx.fillStyle = '#222328';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#bbb';
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height * 2);
+    ctx.fillStyle = tubeColor;
     drawEnvironment(ctx);
-    ctx.fillStyle = "#222328";
-    ctx.strokeStyle = "#222328";
+    ctx.fillStyle = bgColor;
+    ctx.strokeStyle = bgColor;
     walls.forEach(wall => drawWall(wall, ctx));
-    ctx.strokeStyle = "#ff1030";
+    balls.forEach(ball => drawBall(ball, ctx));
+    ctx.strokeStyle = redjarColor;
     drawJarOutline(jars.red, ctx);
     ctx.lineWidth = 5;
-    ctx.strokeStyle = "#0078bb";
+    ctx.strokeStyle = bluejarColor;
     drawJarOutline(jars.blue, ctx);
-    balls.forEach(ball => drawBall(ball, ctx));
     ctx.fillStyle = '#fff';
-    ctx.font = "bold 20px Roboto Slab";
-    ctx.fillText("Total Ball Count", 50, 400);
+    ctx.font = "bold 20px Inter";
+    ctx.fillText("Total Ball Count", 70, 400);
     ctx.fillText("Total Ball Count", canvas.width - 200, 400);
-    ctx.font = "800 40px Robot Slab";
+    ctx.font = "800 40px Inter";
     ctx.fillText('' + score.left, 150, 350);
     ctx.fillText('' + score.right, canvas.width - 150, 350);
     ctx.fillStyle = '#666';
-    roundRect(ctx, canvas.width - 210, 175, 150, 100, 20, true, false)
+    var cx = canvas.width - 210 + 75;
+    var cy = 175 + 50;
+    roundRect(ctx, canvas.width - 210, 175, 150, 70, 10, true, false)
+    ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
-    ctx.fillText('' + time, canvas.width - 150, 250);
+    ctx.fillText('' + time, cx, cy - 10);
     var text = 'Jar filling';
     if (!running) text = 'Restarting';
-    ctx.font = "bold 20px Roboto Slab"
-    ctx.fillText(text, canvas.width - 180, 200);
+    ctx.font = "bold 20px Inter"
+    ctx.fillText(text, cx, cy + 10);
+    ctx.restore();
   });
   
 </script>

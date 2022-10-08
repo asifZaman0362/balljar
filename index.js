@@ -18,7 +18,7 @@ app.use(express.static("public"));
 const frameRate = 1000 / 60;
 const canvas = {width: 1000, height: 480};
 const wallThickness = 20;
-const ballSize = 10;
+const ballSize = 15;
 const maxBalls = 10;
 var left = 0, right = 0;
 const mid_x = canvas.width / 2;
